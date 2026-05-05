@@ -50,7 +50,7 @@ here("data-raw/nurses-stress/stress/6B/6B_1587569373/EDA.csv.gz") %>%
 ```
 
 
-##How to make a function to load files similarly automatically
+##How to make a function (ultimately to load files similarly automatically, here as a simple example)
 
 ```{r}
 #' Addition of two numbers #This is the title of the Roxygen
@@ -69,6 +69,55 @@ add_numbers <- function(num1, num2) {
   return(output)
 }
 # Husk ikke at have curseren inde i funktionen når du kører den. Til at indsætte Roxygenobjekt, skal Crtl+shift+P and choose Insert Roxygen
-# Render means reforming R to a differetnt format like HTML, will also check if all functions are working. 
+# Render means reforming R to a differetnt format like HTML, will also check if all functions are working.
 add_numbers(66, 2)
+```
+
+##We are adding a function for loading files
+```{r}
+here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
+  read_csv(
+    show_col_types = FALSE,
+    name_repair = to_snake_case,
+    n_max = 100
+  )
+
+# To make it a function
+
+?read # Tests if a function name is already in use by some R packages
+
+read <- function() {
+  here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
+    read_csv(
+      show_col_types = FALSE,
+      name_repair = to_snake_case,
+      n_max = 100
+    )
+}
+
+# Make it more generic by replacing specific elements with arguments that can be replaced by specific things when using the function
+
+#' Read CSV-datatables in R
+#'
+#' @param file_path The specific path to the CSV-datafile
+#'
+#' @returns A CSV-datatable in R format as a tibble
+read <- function(file_path) {
+  data <- file_path %>%
+    read_csv(
+      show_col_types = FALSE,
+      name_repair = to_snake_case,
+      n_max = 100
+    )
+  return(data)
+} # REMEMBER TO PLACE CURSER OUTSIDE THE CODE!! OTHERWISE IT WONT WORK!!
+```
+
+Testing the new read function:
+```{r}
+here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
+  read()
+
+here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
+  read()
 ```
