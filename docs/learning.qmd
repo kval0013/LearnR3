@@ -48,3 +48,27 @@ here("data-raw/nurses-stress/stress/6B/6B_1587569373/EDA.csv.gz") %>%
     n_max = 100
   )
 ```
+
+
+##How to make a function to load files similarly automatically
+
+```{r}
+#' Addition of two numbers #This is the title of the Roxygen
+#'
+#' @param num1 The first number added
+#' @param num2 The second number added
+#'
+#' @returns Gives the sum of two numbers #A description of what the function returns
+
+# @export #Also part of the Roxygen. Mostly useful for making a package, tells people if the function should be available to them
+
+# @examples #Also part of the Roxygen. Useful for showing how to use the function in a package.
+
+add_numbers <- function(num1, num2) {
+  output <- num1 + num2
+  return(output)
+}
+# Husk ikke at have curseren inde i funktionen når du kører den. Til at indsætte Roxygenobjekt, skal Crtl+shift+P and choose Insert Roxygen
+# Render means reforming R to a differetnt format like HTML, will also check if all functions are working. 
+add_numbers(66, 2)
+```
