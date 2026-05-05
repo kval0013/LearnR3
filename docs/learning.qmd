@@ -3,9 +3,9 @@ title: "Draft Quarto document"
 author: "KSV"
 format: html
 ---
-
+µ
 ## Loading packages
-r setup is always the first chunck from a Quarto-document that will be run when other chunks of the document are run.
+An "r setup"-code chunk is always the first chunck from a Quarto-document that will be run when other chunks of the document are run.
 Here package can help maintain the project from within.
 ```{r setup}
 #| include: false
@@ -18,14 +18,33 @@ library("snakecase")
 The difference between the read_csv and read.csv is that the read_csv is more controlled and belongs to the tidyverse
 .
 ```{r}
-here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>% #By using the 'here' function we are telling R to where the file is currently at ... Helps reproducability.
+here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>% # By using the 'here' function we are telling R to where the file is currently at ... Helps reproducability.
   read_csv(
-    show_col_types = FALSE, #removes the R assumed types of data in each column, which would otherwise be listed under the dataoutput visual.
-    name_repair = to_snake_case, #snake_case is a way to reformat the coloumn-names to use _ instead of Uppercases to distinguish words where a usual space would used. We introduce the package for snake_case in setup-chunk.
-    n_max = 100 #limits number of rows loaded
+    show_col_types = FALSE, # removes the R assumed types of data in each column, which would otherwise be listed under the dataoutput visual.
+    name_repair = to_snake_case, # snake_case is a way to reformat the coloumn-names to use _ instead of Uppercases to distinguish words where a usual space would used. We introduce the package for snake_case in setup-chunk.
+    n_max = 100 # limits number of rows loaded
   )
 
 # ? before a function name get the description of the funciton in the Help-section.
 
-# It is a good idea to test code by loading short part of large dataset, then test code, then use the full dataset to run code and final functions. We alter the n_max part of read_csv-function
+# It is a good idea to t %>% est code by loading short part of large dataset, then test code, then use the full dataset to run code and final functions. We alter the n_max part of read_csv-function
+```
+
+## Exercise: Reading other files
+
+
+```{r}
+here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
+  read_csv(
+    show_col_types = FALSE,
+    name_repair = to_snake_case,
+    n_max = 100
+  )
+
+here("data-raw/nurses-stress/stress/6B/6B_1587569373/EDA.csv.gz") %>%
+  read_csv(
+    show_col_types = FALSE,
+    name_repair = to_snake_case,
+    n_max = 100
+  )
 ```
