@@ -12,12 +12,14 @@ Here package can help maintain the project from within.
 library("tidyverse")
 library("here")
 library("snakecase")
+source(here("R/functions.R"))
 ```
 
 ##Importing nurses-stress data
 The difference between the read_csv and read.csv is that the read_csv is more controlled and belongs to the tidyverse
 .
 ```{r}
+#| eval: false
 here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>% # By using the 'here' function we are telling R to where the file is currently at ... Helps reproducability.
   read_csv(
     show_col_types = FALSE, # removes the R assumed types of data in each column, which would otherwise be listed under the dataoutput visual.
@@ -34,6 +36,7 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>% # By using 
 
 
 ```{r}
+#| eval: false
 here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
   read_csv(
     show_col_types = FALSE,
@@ -75,6 +78,7 @@ add_numbers(66, 2)
 
 ##We are adding a function for loading files
 ```{r}
+#| eval: false
 here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
   read_csv(
     show_col_types = FALSE,
@@ -115,6 +119,7 @@ read <- function(file_path) {
 
 Testing the new read function:
 ```{r}
+#| output: false
 here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
   read()
 
@@ -125,6 +130,8 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
 
 ##Adjusting the read function 
 ```{r}
+#| eval: false
+# eval: false Added as we moved the function to the functions-document.
 #' Read CSV-datatables in R
 #'
 #' @param file_path The specific path to the CSV-datafile
@@ -135,12 +142,12 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
 
 read <- function(file_path, max_rows = 100) {
   data <- file_path %>%
-    readr::read_csv( #We add which package the read_csv comes from and this will automatically be used when running the function. Don't use library(PACKAGE NAME) or require(PACKAGE NAME) as it can ruin later functionality of the function. 
+    readr::read_csv( # We add which package the read_csv comes from and this will automatically be used when running the function. Don't use library(PACKAGE NAME) or require(PACKAGE NAME) as it can ruin later functionality of the function.
       show_col_types = FALSE,
       name_repair = snakecase::to_snake_case,
       n_max = max_rows,
     )
-  return(data)
+return(data)
 }
 
 
@@ -162,10 +169,16 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
 The usethis::use_package("XX") will check if the package is installed otherwise install it. 
 The usethis::use_tidy_description may include version number or usethis::use_tidy_dependencies. 
 ```{r}
-#usethis::use_tidy_description
-#usethis::use_tidy_dependencies 
-#It is the _dependencies. 
+# usethis::use_tidy_description
+# usethis::use_tidy_dependencies
+# It is the _dependencies.
+#| #output:false #this will remove the tibble from the rendered file.
 ```
 
 Now we describe what parts of the function comes from which packages and only using a specific package function. 
 
+##Adding functions to an R function.R-file
+```{r}
+# CRTL. to open the functionsfile.
+# Now we simply cut and paste
+```
