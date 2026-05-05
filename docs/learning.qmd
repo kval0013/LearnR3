@@ -121,3 +121,39 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>%
 here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
   read()
 ```
+
+
+##Adjusting the read function 
+```{r}
+#' Read CSV-datatables in R
+#'
+#' @param file_path The specific path to the CSV-datafile
+#'
+#' @param file_path The specific path to the CSV-datafile
+#' @param max_rows The maximum number of rows included in the tibble
+#' @returns A CSV-datatable in R format as a tibble
+
+read <- function(file_path, max_rows = 100) {
+  data <- file_path %>%
+    read_csv(
+      show_col_types = FALSE,
+      name_repair = to_snake_case,
+      n_max = max_rows,
+    )
+  return(data)
+}
+
+
+# Testing it:
+# Outputs only 100 rows
+here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
+  read()
+
+# Outputs only 1000 rows
+here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
+  read(max_rows = 1000)
+
+# Outputs all rows (`Inf` means infinity)
+here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
+  read(max_rows = Inf)
+```
