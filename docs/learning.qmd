@@ -1,5 +1,5 @@
 ---
-title: "Draft Quarto document"
+title: "Coding document - R intermediate course DDEA 2026"
 author: "KSV"
 format: html
 ---
@@ -135,9 +135,9 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") %>%
 
 read <- function(file_path, max_rows = 100) {
   data <- file_path %>%
-    read_csv(
+    readr::read_csv( #We add which package the read_csv comes from and this will automatically be used when running the function. Don't use library(PACKAGE NAME) or require(PACKAGE NAME) as it can ruin later functionality of the function. 
       show_col_types = FALSE,
-      name_repair = to_snake_case,
+      name_repair = snakecase::to_snake_case,
       n_max = max_rows,
     )
   return(data)
@@ -157,3 +157,15 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
 here("data-raw/nurses-stress/stress/5C/5C_1586886712/HR.csv.gz") |>
   read(max_rows = Inf)
 ```
+
+##Making robust and reuseable functions
+The usethis::use_package("XX") will check if the package is installed otherwise install it. 
+The usethis::use_tidy_description may include version number or usethis::use_tidy_dependencies. 
+```{r}
+#usethis::use_tidy_description
+#usethis::use_tidy_dependencies 
+#It is the _dependencies. 
+```
+
+Now we describe what parts of the function comes from which packages and only using a specific package function. 
+
