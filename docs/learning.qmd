@@ -203,3 +203,25 @@ hr_data_all <- hr_data |>
 
 unique(hr_data_all$file_path_id)
 ```
+
+##Exercise: Convert map to function and use on sleep
+```{r}
+#' Functional to read in multiple files to dataframe at once from the same mother-folder
+#'
+#' @param filename Name of the files that should be added to the dataframe from all the subfolders
+#'
+#' @returns A dataframe combining multiple files from different subfolders
+
+read_all <- function(filename, max_rows=100) {
+    files <- .DATASET_DIR |>
+       fs::dir_ls(regexp = filename, recurse = TRUE)
+    data <- files |>
+  purrr::map(\(file) read(file, max_rows = max_rows)) |>
+  purrr::list_rbind(names_to = "file_path_id")
+    return(data)
+}
+
+read_all("HR.csv.gz")
+
+```
+
