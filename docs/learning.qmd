@@ -33,7 +33,7 @@ here("data-raw/nurses-stress/stress/5C/5C_1586886626/HR.csv.gz") %>% # By using 
 # It is a good idea to t %>% est code by loading short part of large dataset, then test code, then use the full dataset to run code and final functions. We alter the n_max part of read_csv-function
 ```
 
-## Exercise: Reading other files
+### Exercise: Reading other files
 
 
 ```{r}
@@ -195,6 +195,8 @@ hr_data <- hr_files |>
 ```
 Before it can be row-combind it to a dataframe, we'll need to add ID for all the nurses before. 
 ```{r}
+#| output: false
+
 hr_data_all <- hr_data |>
   list_rbind(names_to = "file_path_id") # Adds file_path_id as ID, we will then extract the actual ID and only keep this as the ID-number.
 
@@ -203,7 +205,7 @@ hr_data_all <- hr_data |>
 unique(hr_data_all$file_path_id)
 ```
 
-##Exercise: Convert map to function and use on sleep
+###Exercise: Convert map to function and use on sleep
 ```{r}
 #| output: false
 #' Functional to read in multiple files to dataframe at once from the same mother-folder
@@ -282,4 +284,73 @@ get_participant_id <- function(data) {
 }
 
 # get_participant_id(hr_data_all) IT IS WORKING!
+```
+
+## Split and combine data from different dataframes
+###Working with across
+In across there are two arguments .cols (columns) and .fns (functions). Map expects a list of inputs (entire datasets), and across expects a vector of inputs (can be parts of a dataset)
+```{r}
+#| output: false
+hr_data_all <- read_all("HR.csv.gz") |>
+  get_participant_id()
+
+hr_data_all |>
+  head(10)
+```
+
+```{r}
+#| output: false
+
+hr_data_all |>
+  summarise(across(hr, list(
+    mean = mean,
+    median = median,
+    min = min,
+    max = max,
+    SD = sd,
+    Var = var
+  ))) # By creating a list you can label it. The word after = is the function. If you wanted to ignore na's in the function. across(hr, \(x) mean(x, na.rm = TRUE)). Anonymous functions are often called lambda functions as well.
+
+# Now we create it as a function that can be applied to the numeric values of a dataset:
+
+hr_data_all |> summarise(across(where(is.numeric), list(
+  mean = mean,
+  median = median,
+  min = min,
+  max = max,
+  SD = sd
+)))
+```
+
+###Working with dates
+We are gonna use a a package called lubridate (the function round_date)
+```{r}
+hr_data_all |>
+  mutate(
+    datetime = round_date(collection_datetime,
+      unit = "minute"
+    ),
+    .before = "collection_datetime"
+  )
+```
+
+###Summarizing by groups
+```{r}
+hr_data_all |>
+  mutate(
+    collection_datetime = round_date(collection_datetime,
+      unit = "minute"
+    )
+  ) |>
+  summarise(
+    across(
+      where(is.numeric),
+      list(
+        mean = mean,
+        median = median,
+        SD = sd
+      )
+    ),
+    .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
+  )
 ```
