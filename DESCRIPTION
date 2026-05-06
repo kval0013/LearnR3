@@ -5,3 +5,16 @@ Version: 0.0.1
 Encoding: UTF-8
 URL: https://github.com/kval0013/LearnR3
 BugReports: https://github.com/kval0013/LearnR3/issues
+Imports: 
+    cli,
+    fs,
+    glue,
+    here,
+    lifecycle,
+    readr,
+    rlang,
+    snakecase,
+    withr
+RoxygenNote: 7.3.3
+Depends: 
+    tidyverse
