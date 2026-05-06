@@ -13,6 +13,8 @@ library("tidyverse")
 library("here")
 library("snakecase")
 library("fs")
+library("tidyselect")
+library("dplyr")
 source(here("R/functions.R"))
 ```
 
@@ -222,6 +224,7 @@ read_all <- function(filename, max_rows = 100) {
     purrr::list_rbind(names_to = "file_path_id")
   return(data)
 }
+
 ```
 
 ## Datainspection - quantitative and qualitative data
@@ -354,3 +357,38 @@ hr_data_all |>
     .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
   )
 ```
+
+###Creating a function for datetime-summary
+```{r}
+summarise_by_datetime <- function(data, unit= "minute") {
+  summarised_data <- data |>
+    dplyr::mutate(
+    collection_datetime = lubridate::round_date(
+      collection_datetime,
+      unit = "minute"
+    )
+  ) |>
+  dplyr::summarise(
+    dplyr::across(
+      tidyselect::where(is.numeric),
+      list(
+        mean = mean,
+        median = median,
+        SD = sd)
+    ),
+    .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
+  )
+  return(summarised_data)
+}
+
+
+```
+Den virker på 
+hr_data_all <- read_all("HR.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+  
+```{r}
+
+```
+
