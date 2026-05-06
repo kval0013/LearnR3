@@ -205,7 +205,7 @@ unique(hr_data_all$file_path_id)
 
 ##Exercise: Convert map to function and use on sleep
 ```{r}
-#| output= false
+#| output: false
 #' Functional to read in multiple files to dataframe at once from the same mother-folder
 #'
 #' @param filename Name of the files that should be added to the dataframe from all the subfolders
@@ -220,13 +220,11 @@ read_all <- function(filename, max_rows = 100) {
     purrr::list_rbind(names_to = "file_path_id")
   return(data)
 }
-
-read_all("HR.csv.gz")
 ```
 
 ## Datainspection - quantitative and qualitative data
 ```{r}
-#| output= false
+#| output: false
 
 survey_data <- here("data-raw/nurses-stress/survey-results.csv/survey-results.csv") |>
   read()
@@ -237,6 +235,7 @@ survey_data
 unique(survey_data$id)
 unique(hr_data_all$file_path_id)
 ```
+
 ```{r}
 hr_data_all |>
   mutate(
@@ -253,23 +252,34 @@ hr_data_all |>
 
 ## Create function to extract participant ID
 ```{r}
+# get_participant_id <- function(data) {
+#  data_with_id <- data |>
+#    dplyr::mutate(
+#      ID = stringr::str_extract( # Extracts complete match from the argument below
+#        file_path_id,
+#        pattern = "/stress/[:alnum:]{2}/"
+#      ) |>
+#        stringr::str_remove("/stress/") |> # First remove the stress-folder-name
+#        stringr::str_remove("/"), # Then removing the two backlashes, as these characters could not be removed along with the #stress-name
+#      .before = file_path_id # Tells R to place the new column before the current column called file_path_id
+#    ) |>
+#    dplyr::select(!c(file_path_id))
+#  return(data_with_id)
+# }
+
+# Trying for a different more simplyfied function:
 get_participant_id <- function(data) {
   data_with_id <- data |>
     dplyr::mutate(
       ID = stringr::str_extract( # Extracts complete match from the argument below
         file_path_id,
-        pattern = "/stress/[:alnum:]{2}/"
-      ) |>
-        stringr::str_remove("/stress/") |> # First remove the stress-folder-name
-        stringr::str_remove("/"), # Then removing the two backlashes, as these characters could not be removed along with the stress-name
+        pattern = "(?<=/stress/)[:alnum:]{2}(?=/)" # (?<=) tells the str_extract to look for things preceeded by the following part inbetween //, the (?=/) tells the str_extract to look for the searched for items only if they match before a backlash.
+      ),
       .before = file_path_id # Tells R to place the new column before the current column called file_path_id
     ) |>
     dplyr::select(!c(file_path_id))
   return(data_with_id)
 }
 
-?select
-
-read_all("BVP.csv.gz") |>
-  get_participant_id()
+# get_participant_id(hr_data_all) IT IS WORKING!
 ```

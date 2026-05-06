@@ -22,17 +22,17 @@ read_all <- function(filename, max_rows = 100) {
   get_participant_id <- function(data) {
     data_with_id <- data |>
       dplyr::mutate(
-        ID = stringr::str_extract(
+        ID = stringr::str_extract( # Extracts complete match from the argument below
           file_path_id,
-          pattern = "/stress/[:alnum:]{2}/"
-        ) |>
-          stringr::str_remove("/stress/") |>
-          stringr::str_remove("/"),
-        .before = file_path_id
+          pattern = "(?<=/stress/)[:alnum:]{2}(?=/)" #(?<=) tells the str_extract to look for things preceeded by the following part inbetween //, the (?=/) tells the str_extract to look for the searched for items only if they match before a backlash.
+        ),
+        .before = file_path_id # Tells R to place the new column before the current column called file_path_id
       ) |>
       dplyr::select(!c(file_path_id))
     return(data_with_id)
   }
+
+
 
   # Global variables ----
   .DATASET_DIR <- here::here("data-raw/nurses-stress/")
