@@ -18,6 +18,7 @@ Imports:
     rlang,
     snakecase,
     stringr,
+    tidyr,
     tidyselect,
     withr
 RoxygenNote: 7.3.3
