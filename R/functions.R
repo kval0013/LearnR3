@@ -17,6 +17,7 @@ read_all <- function(filename, max_rows = 100) {
     purrr::map(\(file) read(file, max_rows = max_rows)) |>
     purrr::list_rbind(names_to = "file_path_id")
   return(data)
+}
 
 
   get_participant_id <- function(data) {
@@ -33,7 +34,28 @@ read_all <- function(filename, max_rows = 100) {
   }
 
 
+  summarise_by_datetime <- function(data, unit= "minute") {
+    summarised_data <- data |>
+      dplyr::mutate(
+        collection_datetime = lubridate::round_date(
+          collection_datetime,
+          unit = "minute"
+        )
+      ) |>
+      dplyr::summarise(
+        dplyr::across(
+          tidyselect::where(is.numeric),
+          list(
+            mean = mean,
+            median = median,
+            SD = sd)
+        ),
+        .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
+      )
+    return(summarised_data)
+  }
+
 
   # Global variables ----
   .DATASET_DIR <- here::here("data-raw/nurses-stress/")
-}
+
