@@ -56,6 +56,13 @@ read_all <- function(filename, max_rows = 100) {
   }
 
 
+  read_sensor_data <- function(filename, max_rows = 100, unit = "minute") {
+    data <- read_all(filename, max_rows = max_rows) |>
+      get_participant_id() |>
+      summarise_by_datetime(unit = unit)
+    return(data)
+  }
+
   # Global variables ----
   .DATASET_DIR <- here::here("data-raw/nurses-stress/")
 
