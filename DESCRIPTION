@@ -11,6 +11,7 @@ Imports:
     glue,
     here,
     lifecycle,
+    purrr,
     readr,
     rlang,
     snakecase,
