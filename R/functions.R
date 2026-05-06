@@ -18,6 +18,22 @@ read_all <- function(filename, max_rows = 100) {
     purrr::list_rbind(names_to = "file_path_id")
   return(data)
 
+
+  get_participant_id <- function(data) {
+    data_with_id <- data |>
+      dplyr::mutate(
+        ID = stringr::str_extract(
+          file_path_id,
+          pattern = "/stress/[:alnum:]{2}/"
+        ) |>
+          stringr::str_remove("/stress/") |>
+          stringr::str_remove("/"),
+        .before = file_path_id
+      ) |>
+      dplyr::select(!c(file_path_id))
+    return(data_with_id)
+  }
+
   # Global variables ----
   .DATASET_DIR <- here::here("data-raw/nurses-stress/")
 }

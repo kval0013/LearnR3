@@ -192,7 +192,6 @@ hr_files <- here("data-raw/nurses-stress/") |> # Gonna pipe this path in the dir
 
 hr_data <- hr_files |>
   map(read) # This just creates a list of all the files as tibbles, not an actual dataframe.
-
 ```
 Before it can be row-combind it to a dataframe, we'll need to add ID for all the nurses before. 
 ```{r}
@@ -206,22 +205,71 @@ unique(hr_data_all$file_path_id)
 
 ##Exercise: Convert map to function and use on sleep
 ```{r}
+#| output= false
 #' Functional to read in multiple files to dataframe at once from the same mother-folder
 #'
 #' @param filename Name of the files that should be added to the dataframe from all the subfolders
 #'
 #' @returns A dataframe combining multiple files from different subfolders
 
-read_all <- function(filename, max_rows=100) {
-    files <- .DATASET_DIR |>
-       fs::dir_ls(regexp = filename, recurse = TRUE)
-    data <- files |>
-  purrr::map(\(file) read(file, max_rows = max_rows)) |>
-  purrr::list_rbind(names_to = "file_path_id")
-    return(data)
+read_all <- function(filename, max_rows = 100) {
+  files <- .DATASET_DIR |>
+    fs::dir_ls(regexp = filename, recurse = TRUE)
+  data <- files |>
+    purrr::map(\(file) read(file, max_rows = max_rows)) |>
+    purrr::list_rbind(names_to = "file_path_id")
+  return(data)
 }
 
 read_all("HR.csv.gz")
-
 ```
 
+## Datainspection - quantitative and qualitative data
+```{r}
+#| output= false
+
+survey_data <- here("data-raw/nurses-stress/survey-results.csv/survey-results.csv") |>
+  read()
+
+hr_data_all
+
+survey_data
+unique(survey_data$id)
+unique(hr_data_all$file_path_id)
+```
+```{r}
+hr_data_all |>
+  mutate(
+    ID = str_extract( # Extracts complete match from the argument below
+      file_path_id,
+      pattern = "/stress/[:alnum:]{2}/"
+    ) |>
+      str_remove("/stress/") |> # First remove the stress-folder-name
+      str_remove("/"), # Then removing the two backlashes, as these characters could not be removed along with the stress-name
+    .before = file_path_id # Tells R to place the new column before the current column called file_path_id
+  ) |>
+  select(!c(file_path_id))
+```
+
+## Create function to extract participant ID
+```{r}
+get_participant_id <- function(data) {
+  data_with_id <- data |>
+    dplyr::mutate(
+      ID = stringr::str_extract( # Extracts complete match from the argument below
+        file_path_id,
+        pattern = "/stress/[:alnum:]{2}/"
+      ) |>
+        stringr::str_remove("/stress/") |> # First remove the stress-folder-name
+        stringr::str_remove("/"), # Then removing the two backlashes, as these characters could not be removed along with the stress-name
+      .before = file_path_id # Tells R to place the new column before the current column called file_path_id
+    ) |>
+    dplyr::select(!c(file_path_id))
+  return(data_with_id)
+}
+
+?select
+
+read_all("BVP.csv.gz") |>
+  get_participant_id()
+```
