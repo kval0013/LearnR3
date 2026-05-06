@@ -225,6 +225,7 @@ read_all <- function(filename, max_rows = 100) {
   return(data)
 }
 
+
 ```
 
 ## Datainspection - quantitative and qualitative data
@@ -414,14 +415,40 @@ hr_data_all <- read_all("HR.csv.gz") |>
 #'
 #' @returns A combined dataframe with summaries values within each minute of observations. 
 
-read_sensor_data <- function(filename) {
-  data <- read_all(filename, max_rows = 100) |>
+read_sensor_data <- function(filename, max_rows = 100, unit = "minute") {
+  data <- read_all(filename, max_rows = max_rows) |>
       get_participant_id() |>
-      summarise_by_datetime()
+      summarise_by_datetime(unit = unit)
     return(data)
   }
 
-read_sensor_data("HR.csv.gz")
+#read_sensor_data("HR.csv.gz")
 
+```
+
+##Working with survey_data
+To combine the survey data and the quantitative data, we have to alter the columnnames and work with the dates and times for them to be the same format and thus combineable.
+First we will pivot the survey_data longer
+```{r}
+survey_data<- here("data-raw/nurses-stress/survey-results.csv/survey-results.csv") |>
+  read()
+
+```
+Now we need to combine three columns from survey data in one column as in the sensordata.
+
+```{r}
+#| output: false
+survey_tidy <- survey_data |> mutate(date = mdy(date), 
+                      start_datetime = as_datetime(
+                        paste(date, 
+                              start_time)),
+                      end_datetime = as_datetime(
+                        paste(date, 
+                              end_time)),
+                      datetime_id = start_datetime,
+                      .before = start_time
+                      ) |>
+  select(-c(start_time, end_time, duration, date)
+         )
 ```
 
