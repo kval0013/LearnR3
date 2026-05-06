@@ -1,15 +1,31 @@
 ---
-title: "Draft Quarto document"
-author: "Your Name"
+title: "Cleaning.document LearnR3"
+author: "KSV"
 format: html
 ---
 
-## Header 1
+## Prepare data
 
 ```{r setup}
 #| include: false
 ```
 
+###We're loading all preprocessed datasets
 ```{r}
-# Code chunk
+hr_data <- read_all("HR.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+
+temp_data <-read_all("TEMP.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+
+eda_data <-read_all("EDA.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+
+bvp_data <-read_all("BVP.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+
 ```
