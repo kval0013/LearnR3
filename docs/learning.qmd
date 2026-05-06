@@ -12,6 +12,7 @@ Here package can help maintain the project from within.
 library("tidyverse")
 library("here")
 library("snakecase")
+library("fs")
 source(here("R/functions.R"))
 ```
 
@@ -147,7 +148,7 @@ read <- function(file_path, max_rows = 100) {
       name_repair = snakecase::to_snake_case,
       n_max = max_rows,
     )
-return(data)
+  return(data)
 }
 
 
@@ -181,4 +182,24 @@ Now we describe what parts of the function comes from which packages and only us
 ```{r}
 # CRTL. to open the functionsfile.
 # Now we simply cut and paste
+```
+
+##Day 2: Functionals (repeated functions automatically to vectors
+We are using the package fs to create an overall filepath for all the nested files in folders for the nurses-stress-dataset. The argument 'recurse' (looking in all subfolders) and 'regexp' from the function dir_ls ('Within this folder tell me the name of all the files) to do this
+```{r}
+hr_files <- here("data-raw/nurses-stress/") |> # Gonna pipe this path in the dir_ls
+  dir_ls(regex = "HR.csv.gz", recurse = TRUE)
+
+hr_data <- hr_files |>
+  map(read) # This just creates a list of all the files as tibbles, not an actual dataframe.
+
+```
+Before it can be row-combind it to a dataframe, we'll need to add ID for all the nurses before. 
+```{r}
+hr_data_all <- hr_data |>
+  list_rbind(names_to = "file_path_id") # Adds file_path_id as ID, we will then extract the actual ID and only keep this as the ID-number.
+
+# Adding all the other types of data
+
+unique(hr_data_all$file_path_id)
 ```
