@@ -273,6 +273,11 @@ hr_data_all |>
 # }
 
 # Trying for a different more simplyfied function:
+#' Extracting participant ID from the filepath
+#'
+#' @param data Uses the filepath to identify an ID
+#'
+#' @returns ID as two characters of numbers or letters alone or in combination
 get_participant_id <- function(data) {
   data_with_id <- data |>
     dplyr::mutate(
@@ -328,6 +333,7 @@ hr_data_all |> summarise(across(where(is.numeric), list(
 ###Working with dates
 We are gonna use a a package called lubridate (the function round_date)
 ```{r}
+#| output: false
 hr_data_all |>
   mutate(
     datetime = round_date(collection_datetime,
@@ -339,6 +345,7 @@ hr_data_all |>
 
 ###Summarizing by groups
 ```{r}
+#| output: false
 hr_data_all |>
   mutate(
     collection_datetime = round_date(collection_datetime,
@@ -360,6 +367,15 @@ hr_data_all |>
 
 ###Creating a function for datetime-summary
 ```{r}
+#' Summarise a date and time column for one value
+#'
+#' @param data Uses a coloumn containing a date in the dataframe
+#' @param unit Default minutes but can be second, minut, hour, day, week, month, bimonth, season, halfyear, year
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 summarise_by_datetime <- function(data, unit= "minute") {
   summarised_data <- data |>
     dplyr::mutate(
@@ -388,7 +404,24 @@ hr_data_all <- read_all("HR.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
   
+  
+###Creating function for any dataset  
 ```{r}
+#| output: false
+#' Read sensor data
+#'
+#' @param filename Name of the files that should be combined from multiple subfolders
+#'
+#' @returns A combined dataframe with summaries values within each minute of observations. 
+
+read_sensor_data <- function(filename) {
+  data <- read_all(filename, max_rows = 100) |>
+      get_participant_id() |>
+      summarise_by_datetime()
+    return(data)
+  }
+
+read_sensor_data("HR.csv.gz")
 
 ```
 
