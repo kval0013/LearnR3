@@ -4,7 +4,7 @@ author: "KSV"
 format: html
 ---
 µ
-## Loading packages
+## Setup-chunk
 An "r setup"-code chunk is always the first chunck from a Quarto-document that will be run when other chunks of the document are run.
 Here package can help maintain the project from within.
 ```{r setup}
@@ -224,8 +224,6 @@ read_all <- function(filename, max_rows = 100) {
     purrr::list_rbind(names_to = "file_path_id")
   return(data)
 }
-
-
 ```
 
 ## Datainspection - quantitative and qualitative data
@@ -377,28 +375,27 @@ hr_data_all |>
 #' @export
 #'
 #' @examples
-summarise_by_datetime <- function(data, unit= "minute") {
+summarise_by_datetime <- function(data, unit = "minute") {
   summarised_data <- data |>
     dplyr::mutate(
-    collection_datetime = lubridate::round_date(
-      collection_datetime,
-      unit = "minute"
+      collection_datetime = lubridate::round_date(
+        collection_datetime,
+        unit = "minute"
+      )
+    ) |>
+    dplyr::summarise(
+      dplyr::across(
+        tidyselect::where(is.numeric),
+        list(
+          mean = mean,
+          median = median,
+          SD = sd
+        )
+      ),
+      .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
     )
-  ) |>
-  dplyr::summarise(
-    dplyr::across(
-      tidyselect::where(is.numeric),
-      list(
-        mean = mean,
-        median = median,
-        SD = sd)
-    ),
-    .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
-  )
   return(summarised_data)
 }
-
-
 ```
 Den virker på 
 hr_data_all <- read_all("HR.csv.gz") |>
@@ -413,42 +410,109 @@ hr_data_all <- read_all("HR.csv.gz") |>
 #'
 #' @param filename Name of the files that should be combined from multiple subfolders
 #'
-#' @returns A combined dataframe with summaries values within each minute of observations. 
+#' @returns A combined dataframe with summaries values within each minute of observations.
 
 read_sensor_data <- function(filename, max_rows = 100, unit = "minute") {
   data <- read_all(filename, max_rows = max_rows) |>
-      get_participant_id() |>
-      summarise_by_datetime(unit = unit)
-    return(data)
-  }
+    get_participant_id() |>
+    summarise_by_datetime(unit = unit)
+  return(data)
+}
 
-#read_sensor_data("HR.csv.gz")
-
+# read_sensor_data("HR.csv.gz")
 ```
 
 ##Working with survey_data
 To combine the survey data and the quantitative data, we have to alter the columnnames and work with the dates and times for them to be the same format and thus combineable.
 First we will pivot the survey_data longer
 ```{r}
-survey_data<- here("data-raw/nurses-stress/survey-results.csv/survey-results.csv") |>
+survey_data <- here("data-raw/nurses-stress/survey-results.csv/survey-results.csv") |>
   read()
-
 ```
 Now we need to combine three columns from survey data in one column as in the sensordata.
 
 ```{r}
 #| output: false
-survey_tidy <- survey_data |> mutate(date = mdy(date), 
-                      start_datetime = as_datetime(
-                        paste(date, 
-                              start_time)),
-                      end_datetime = as_datetime(
-                        paste(date, 
-                              end_time)),
-                      datetime_id = start_datetime,
-                      .before = start_time
-                      ) |>
-  select(-c(start_time, end_time, duration, date)
-         )
+survey_tidy <- survey_data |>
+  mutate(
+    date = mdy(date),
+    start_datetime = as_datetime(
+      paste(
+        date,
+        start_time
+      )
+    ),
+    end_datetime = as_datetime(
+      paste(
+        date,
+        end_time
+      )
+    ),
+    datetime_id = start_datetime,
+    .before = start_time
+  ) |>
+  select(-c(start_time, end_time, duration, date))
 ```
 
+```{r}
+#| output: false
+survey_tidy |>
+  select(id, datetime_id, start_datetime, end_datetime) |>
+  pivot_longer(c(start_datetime, end_datetime), names_to = NULL, values_to = "collection_datetime") |> # We add a new column called 'name' were the previous column-names for the selected columns that were combined in one new column named value. Names_to = null removes the name column.
+  group_by(pick(-collection_datetime)) |>
+  complete(collection_datetime = seq(min(collection_datetime),
+    max(collection_datetime),
+    by = 60
+  )) |> # seq can create a vector of values between something. It will by default read a difference in time as seconds, why we had to define the by = 60 to make it a minut
+  ungroup()
+```
+
+###We create a function for tidy data and pivot dataframe longer
+To tidy data:
+```{r}
+#' Tidy survey data dates
+#'
+#' @param data Uses survey data with unstructured time recording for start and end time of when survey was performed.
+#'
+#' @returns A tidid dataframe were the date-time format matches the quantitative data and further adding an additional column based on the start_time for surveying.
+#' @export
+#'
+#' @examples
+tidy_survey_dates <- function(data) {
+  tidied <- data |>
+    dplyr::mutate(
+      date = lubridate::mdy(date),
+      start_datetime = lubridate::as_datetime(paste(date, start_time)),
+      end_datetime = lubridate::as_datetime(paste(date, end_time)),
+      datetime_id = start_datetime,
+      .before = start_time
+    ) |>
+    dplyr::select(-c(start_time, end_time, duration, date))
+  return(tidied)
+}
+
+tidy_survey_dates(survey_data)
+```
+
+To pivot longer:
+```{r}
+#' Pivot survey data columns to long format
+#'
+#' @param data Tidied survey data with reformatted date-time column.
+#'
+#' @returns A pivoted tibble where start_datetime and end_datetime is combined in one column, and previous value name removed. Further, added minutes.
+survey_to_long <- function(data) {
+  longer <- data |>
+    dplyr::select(id, datetime_id, start_datetime, end_datetime) |>
+    tidyr::pivot_longer(c(start_datetime, end_datetime), names_to = NULL, values_to = "collection_datetime") |> # We add a new column called 'name' were the previous column-names for the selected columns that were combined in one new column named value. Names_to = null removes the name column.
+    dplyr::group_by(dplyr::pick(-collection_datetime)) |>
+    tidyr::complete(collection_datetime = seq(min(collection_datetime),
+      max(collection_datetime),
+      by = 60
+    )) |> # seq can create a vector of values between something. It will by default read a difference in time as seconds, why we had to define the by = 60 to make it a minut
+    dplyr::ungroup()
+  return(longer)
+}
+
+survey_to_long(survey_tidy)
+```

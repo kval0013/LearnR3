@@ -1,7 +1,7 @@
 # Functions ----
 
 read <- function(file_path, max_rows = 100) {
-  data <- file_path %>%
+  data <- file_path |>
     readr::read_csv(
       show_col_types = FALSE,
       name_repair = snakecase::to_snake_case,
@@ -63,6 +63,45 @@ read_all <- function(filename, max_rows = 100) {
     return(data)
   }
 
+
+  #' Tidy survey data dates
+  #'
+  #' @param data Uses survey data with unstructured time recording for start and end time of when survey was performed.
+  #'
+  #' @returns A tidid dataframe were the date-time format matches the quantitative data and further adding an additional column based on the start_time for surveying.
+  #' @export
+  #'
+  #' @examples
+  tidy_survey_dates <- function(data) {
+    tidied <- data |>
+      dplyr::mutate(
+        date = lubridate::mdy(date),
+        start_datetime = lubridate::as_datetime(paste(date, start_time)),
+        end_datetime = lubridate::as_datetime(paste(date, end_time)),
+        datetime_id = start_datetime,
+        .before = start_time
+      ) |>
+      dplyr::select(-c(start_time, end_time, duration, date))
+    return(tidied)
+  }
+
+  #' Pivot survey data columns to long format
+  #'
+  #' @param data Tidied survey data with reformatted date-time column.
+  #'
+  #' @returns A pivoted tibble where start_datetime and end_datetime is combined in one column, and previous value name removed. Further, added minutes.
+  survey_to_long <- function(data) {
+    longer <- data |>
+      dplyr::select(id, datetime_id, start_datetime, end_datetime) |>
+      tidyr::pivot_longer(c(start_datetime, end_datetime), names_to = NULL, values_to = "collection_datetime") |> # We add a new column called 'name' were the previous column-names for the selected columns that were combined in one new column named value. Names_to = null removes the name column.
+      dplyr::group_by(dplyr::pick(-collection_datetime)) |>
+      tidyr::complete(collection_datetime = seq(min(collection_datetime),
+                                                max(collection_datetime),
+                                                by = 60
+      )) |> # seq can create a vector of values between something. It will by default read a difference in time as seconds, why we had to define the by = 60 to make it a minut
+      dplyr::ungroup()
+    return(longer)
+  }
   # Global variables ----
   .DATASET_DIR <- here::here("data-raw/nurses-stress/")
 

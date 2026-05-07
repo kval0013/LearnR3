@@ -8,6 +8,8 @@ format: html
 
 ```{r setup}
 #| include: false
+
+source(here::here("R/functions.R"))
 ```
 
 ###We're loading all preprocessed datasets
@@ -20,6 +22,10 @@ temp_data <-read_all("TEMP.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
 
+ibi_data<-read_all("IBI.csv.gz") |>
+  get_participant_id() |>
+  summarise_by_datetime()
+
 eda_data <-read_all("EDA.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
@@ -29,3 +35,13 @@ bvp_data <-read_all("BVP.csv.gz") |>
   summarise_by_datetime()
 
 ```
+## Process survey data
+```{r}
+survey_tidy <- here::here("data-raw/nurses-stress/survey-results.csv.gz") |>
+  read() |>
+  tidy_survey_dates()
+
+survey_long <- survey_tidy |>
+  survey_to_long()
+```
+
