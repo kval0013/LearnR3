@@ -18,22 +18,21 @@ hr_data <- read_all("HR.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
 
-temp_data <-read_all("TEMP.csv.gz") |>
+temp_data <- read_all("TEMP.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
 
-ibi_data<-read_all("IBI.csv.gz") |>
+ibi_data <- read_all("IBI.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
 
-eda_data <-read_all("EDA.csv.gz") |>
+eda_data <- read_all("EDA.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
 
-bvp_data <-read_all("BVP.csv.gz") |>
+bvp_data <- read_all("BVP.csv.gz") |>
   get_participant_id() |>
   summarise_by_datetime()
-
 ```
 ## Process survey data
 ```{r}
@@ -45,3 +44,18 @@ survey_long <- survey_tidy |>
   survey_to_long()
 ```
 
+## Joining datasets
+```{r}
+nurses_stress <- survey_long |>
+  dplyr::full_join(survey_tidy) |>
+  dplyr::full_join(hr_data) |>
+  dplyr::full_join(temp_data) |>
+  dplyr::full_join(ibi_data) |>
+  dplyr::full_join(eda_data) |>
+  dplyr::full_join(bvp_data)
+```
+
+##Saving the fulljoined dataframe
+```{r}
+#write.csv(nurses_stress, here::here("data/nurses-stress.csv"))
+```

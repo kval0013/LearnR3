@@ -243,7 +243,7 @@ unique(hr_data_all$file_path_id)
 ```{r}
 hr_data_all |>
   mutate(
-    ID = str_extract( # Extracts complete match from the argument below
+    id = str_extract( # Extracts complete match from the argument below
       file_path_id,
       pattern = "/stress/[:alnum:]{2}/"
     ) |>
@@ -280,7 +280,7 @@ hr_data_all |>
 get_participant_id <- function(data) {
   data_with_id <- data |>
     dplyr::mutate(
-      ID = stringr::str_extract( # Extracts complete match from the argument below
+      id = stringr::str_extract( # Extracts complete match from the argument below
         file_path_id,
         pattern = "(?<=/stress/)[:alnum:]{2}(?=/)" # (?<=) tells the str_extract to look for things preceeded by the following part inbetween //, the (?=/) tells the str_extract to look for the searched for items only if they match before a backlash.
       ),
@@ -360,7 +360,7 @@ hr_data_all |>
         SD = sd
       )
     ),
-    .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
+    .by = c(id, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
   )
 ```
 
@@ -392,7 +392,7 @@ summarise_by_datetime <- function(data, unit = "minute") {
           SD = sd
         )
       ),
-      .by = c(ID, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
+      .by = c(id, collection_datetime) # Within summarise you'll keep track of a group_by approach by using .by. It further adds the listed functions as applied to each rounded minute and add those togehter.
     )
   return(summarised_data)
 }
@@ -470,6 +470,7 @@ survey_tidy |>
 ###We create a function for tidy data and pivot dataframe longer
 To tidy data:
 ```{r}
+#| output: false
 #' Tidy survey data dates
 #'
 #' @param data Uses survey data with unstructured time recording for start and end time of when survey was performed.
@@ -496,6 +497,7 @@ tidy_survey_dates(survey_data)
 
 To pivot longer:
 ```{r}
+#| output: false
 #' Pivot survey data columns to long format
 #'
 #' @param data Tidied survey data with reformatted date-time column.
@@ -514,5 +516,37 @@ survey_to_long <- function(data) {
   return(longer)
 }
 
-survey_to_long(survey_tidy)
+survey_long <- survey_to_long(survey_tidy)
+```
+
+##Joining data together
+Now we are ready to combine the quantitative and qualitative data
+```{r} 
+#| output: false
+# Testing the different _join functions.
+survey_long |> left_join(survey_tidy)
+
+
+survey_tidy |>
+  count(id, datetime_id) |>
+  filter(n > 1)
+
+survey_long |>
+  right_join(survey_tidy)
+
+survey_long |>
+  full_join(survey_tidy)
+```
+
+```{r}
+#| output: false
+nurses_stress_test <- survey_long |>
+  full_join(survey_tidy)
+
+nurses_stress_test <- nurses_stress_test |>
+  full_join(hr_data)
+
+nurses_stress_test |>
+  arrange(id, collection_datetime) |>
+  view()
 ```
